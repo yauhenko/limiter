@@ -1,0 +1,17 @@
+{
+    "name": "yauhenko/limiter",
+    "autoload": {
+        "psr-4": {
+            "App\\": "./src"
+        }
+    },
+    "authors": [
+        {
+            "name": "Yauheni Kiryienkau",
+            "email": "ya@redstream.by"
+        }
+    ],
+    "require": {
+        "symfony/console": "^5.1"
+    }
+}
