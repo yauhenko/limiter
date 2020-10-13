@@ -12,6 +12,8 @@
         }
     ],
     "require": {
-        "symfony/console": "^5.1"
+        "symfony/console": "^5.1",
+        "ext-pcntl": "*",
+        "ext-posix": "*"
     }
 }

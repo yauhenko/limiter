@@ -1,11 +1,10 @@
 <?php
 
-
 namespace App\Command;
 
 use Symfony\Component\Console\Command\Command;
-use Symfony\Component\Console\Helper\ProgressBar;
 use Symfony\Component\Console\Input\InputInterface;
+use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Style\SymfonyStyle;
 
@@ -13,6 +12,7 @@ class Run extends Command {
 
     protected function configure(): void {
         $this->setName('run');
+        $this->addOption('detach', 'd', InputOption::VALUE_NONE);
     }
 
     protected function execute(InputInterface $input, OutputInterface $output): int {
@@ -20,17 +20,21 @@ class Run extends Command {
         $user = getenv('USER');
         $io->text('Runnig limiter for: ' . $user);
         $time = (int)@file_get_contents("/home/{$user}/.config/limiter");
-
-        //$time = 300 * 20;
-
         $max = 3600 * 2;
-
-        $progress = new ProgressBar($output, $max);
-
-
         $welcome = true;
-
         $prevRestMin = null;
+
+        if($input->getOption('detach')) {
+            $pid = pcntl_fork();
+            if($pid) {
+                $io->success('Running in detached mode. Pid: ' . $pid);
+                fclose(STDIN);
+                fclose(STDOUT);
+                fclose(STDERR);
+                return Command::SUCCESS;
+            }
+            posix_setsid();
+        }
 
         while (true) {
             $rest = $max - $time;
@@ -41,13 +45,6 @@ class Run extends Command {
                 $welcome = false;
             }
 
-            //
-
-//            $progress->setProgress($time);
-//            $progress->setMessage('sss');
-//            $progress->display();
-
-
             if($prevRestMin !== $restMin) {
 
                 $io->text($restMin);
@@ -57,11 +54,13 @@ class Run extends Command {
                     $this->notify("Осталось {$restMin} мин.");
                 } elseif($rest < 60) {
                     $this->notify("Осталось меньше минуты");
-                } elseif($rest === 0) {
-                    $this->notify("Время вышло! Выключи компьютер");
-                    sleep(10);
                 }
+            }
 
+            if($rest === 0) {
+                $this->notify("Время вышло! Выключи компьютер");
+                sleep(5);
+                system('dbus-send --session --type=method_call --print-reply --dest=org.gnome.SessionManager /org/gnome/SessionManager org.gnome.SessionManager.Logout uint32:1');
             }
 
             file_put_contents("/home/{$user}/.config/limiter", $time);
