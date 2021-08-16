@@ -12,8 +12,10 @@
         }
     ],
     "require": {
-        "symfony/console": "^5.1",
+        "php": "^8.0|^7.4",
+        "symfony/console": "^5.3",
         "ext-pcntl": "*",
-        "ext-posix": "*"
+        "ext-posix": "*",
+        "ext-json": "*"
     }
 }
